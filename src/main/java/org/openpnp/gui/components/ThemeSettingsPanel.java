@@ -42,6 +42,8 @@ import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.FlatPropertiesLaf;
 import com.formdev.flatlaf.IntelliJTheme;
 import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
+import com.formdev.flatlaf.intellijthemes.FlatAllIJThemes;
+import com.formdev.flatlaf.intellijthemes.FlatAllIJThemes.FlatIJLookAndFeelInfo;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.util.StringUtils;
@@ -267,6 +269,11 @@ public class ThemeSettingsPanel extends JPanel {
         themes.add(new ThemeInfo("Darcula", null, true, null, FlatDarculaLaf.class.getName()));
         themes.add(new ThemeInfo("macOS Light", null, false, null, FlatMacLightLaf.class.getName()));
         themes.add(new ThemeInfo("macOS Dark", null, true, null, FlatMacDarkLaf.class.getName()));
+        
+        themes.add(new ThemeInfo(Translations.getString("Theme.Section.IntelliJ"), null, false, null, null)); //$NON-NLS-1$
+        for (FlatIJLookAndFeelInfo info : FlatAllIJThemes.INFOS) {
+        	themes.add(new ThemeInfo(info.getName(), null, info.isDark(), null, info.getClassName()));
+        }        
         
         File themesDirectory = new File(Configuration.get().getConfigurationDirectory(), "themes");
         if (!themesDirectory.exists() || !themesDirectory.isDirectory()) {
