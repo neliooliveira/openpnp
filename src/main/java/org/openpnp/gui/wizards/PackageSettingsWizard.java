@@ -27,6 +27,8 @@ import org.openpnp.Translations;
 import org.openpnp.gui.components.ComponentDecorators;
 import org.openpnp.gui.support.AbstractConfigurationWizard;
 import org.openpnp.gui.support.DoubleConverter;
+import org.openpnp.gui.support.LengthConverter;
+import org.openpnp.model.Configuration;
 
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.ColumnSpec;
@@ -43,6 +45,11 @@ public class PackageSettingsWizard extends AbstractConfigurationWizard {
     private JTextField vacuumLevel;
     private JLabel lblBlowOffLevel;
     private JTextField blowOffLevel;
+    private JPanel tapePanel;
+    private JLabel partPitchLabel;
+    private JTextField partPitch;
+    private JLabel rotationInTapeLabel;
+    private JTextField rotationInTape;
 
     public PackageSettingsWizard(org.openpnp.model.Package pkg) {
         this.pkg = pkg;
@@ -50,6 +57,38 @@ public class PackageSettingsWizard extends AbstractConfigurationWizard {
     }
     
     private void createUi() {
+        tapePanel = new JPanel();
+        tapePanel.setBorder(new TitledBorder(null,
+                Translations.getString("PackageSettingsWizard.TapePanel.Border.title"), //$NON-NLS-1$
+                TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        contentPanel.add(tapePanel);
+        tapePanel.setLayout(new FormLayout(new ColumnSpec[] {
+                FormSpecs.RELATED_GAP_COLSPEC,
+                FormSpecs.DEFAULT_COLSPEC,
+                FormSpecs.RELATED_GAP_COLSPEC,
+                ColumnSpec.decode("default:grow"),},
+            new RowSpec[] {
+                FormSpecs.RELATED_GAP_ROWSPEC,
+                FormSpecs.DEFAULT_ROWSPEC,
+                FormSpecs.RELATED_GAP_ROWSPEC,
+                FormSpecs.DEFAULT_ROWSPEC,}));
+
+        partPitchLabel = new JLabel(
+                Translations.getString("PackageSettingsWizard.PartPitchLabel.text")); //$NON-NLS-1$
+        tapePanel.add(partPitchLabel, "2, 2, right, default");
+
+        partPitch = new JTextField();
+        partPitch.setColumns(10);
+        tapePanel.add(partPitch, "4, 2, left, default");
+
+        rotationInTapeLabel = new JLabel(
+                Translations.getString("PackageSettingsWizard.RotationInTapeLabel.text")); //$NON-NLS-1$
+        tapePanel.add(rotationInTapeLabel, "2, 4, right, default");
+
+        rotationInTape = new JTextField();
+        rotationInTape.setColumns(10);
+        tapePanel.add(rotationInTape, "4, 4, left, default");
+
         vacuumBlowOffPanel = new JPanel();
         contentPanel.add(vacuumBlowOffPanel);
         
@@ -85,11 +124,21 @@ public class PackageSettingsWizard extends AbstractConfigurationWizard {
 
     @Override
     public void createBindings() {
-        DoubleConverter doubleConverter = new DoubleConverter("%.1f");
+        DoubleConverter levelConverter = new DoubleConverter("%.1f");
+        DoubleConverter angleConverter =
+                new DoubleConverter(Configuration.get().getLengthDisplayFormat());
+        LengthConverter lengthConverter = new LengthConverter();
         
-        bind(UpdateStrategy.READ_WRITE, pkg, "pickVacuumLevel", vacuumLevel, "text", doubleConverter);
-        bind(UpdateStrategy.READ_WRITE, pkg, "placeBlowOffLevel", blowOffLevel, "text", doubleConverter);
+        bind(UpdateStrategy.READ_WRITE, pkg, "tapePartPitch", partPitch, "text", lengthConverter);
+        bind(UpdateStrategy.READ_WRITE, pkg, "rotationInTape", rotationInTape, "text",
+                angleConverter);
+        bind(UpdateStrategy.READ_WRITE, pkg, "pickVacuumLevel", vacuumLevel, "text",
+                levelConverter);
+        bind(UpdateStrategy.READ_WRITE, pkg, "placeBlowOffLevel", blowOffLevel, "text",
+                levelConverter);
         
+        ComponentDecorators.decorateWithAutoSelectAndLengthConversion(partPitch);
+        ComponentDecorators.decorateWithAutoSelect(rotationInTape);
         ComponentDecorators.decorateWithAutoSelect(vacuumLevel);
         ComponentDecorators.decorateWithAutoSelect(blowOffLevel);
     }

@@ -45,6 +45,12 @@ public class Package extends AbstractPartSettingsHolder {
     @Attribute(required = false)
     private String tapeSpecification;
 
+    @Element(required = false)
+    private Length tapePartPitch = new Length(4, LengthUnit.Millimeters);
+
+    @Attribute(required = false)
+    private double rotationInTape;
+
     @Attribute(required = false)
     private double pickVacuumLevel;
 
@@ -106,6 +112,26 @@ public class Package extends AbstractPartSettingsHolder {
         Object oldValue = this.tapeSpecification;
         this.tapeSpecification = tapeSpecification;
         firePropertyChange("tapeSpecification", oldValue, tapeSpecification);
+    }
+
+    public Length getTapePartPitch() {
+        return tapePartPitch;
+    }
+
+    public void setTapePartPitch(Length tapePartPitch) {
+        Object oldValue = this.tapePartPitch;
+        this.tapePartPitch = tapePartPitch;
+        firePropertyChange("tapePartPitch", oldValue, tapePartPitch);
+    }
+
+    public double getRotationInTape() {
+        return rotationInTape;
+    }
+
+    public void setRotationInTape(double rotationInTape) {
+        Object oldValue = this.rotationInTape;
+        this.rotationInTape = rotationInTape;
+        firePropertyChange("rotationInTape", oldValue, rotationInTape);
     }
 
     public void setPlaceBlowOffLevel(double level) {
