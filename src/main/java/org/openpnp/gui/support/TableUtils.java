@@ -28,6 +28,10 @@ import java.util.prefs.Preferences;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumn;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
 
 import org.openpnp.gui.tablemodel.ColumnWidthSaveable;
 import org.openpnp.gui.tablemodel.ColumnAlignable;
@@ -64,6 +68,8 @@ public class TableUtils {
      * @param prefKey - the key prefix for the particular table
      */
     public static void installColumnWidthSavers(JTable table, Preferences prefs, String prefKey) {
+        restoreColumnOrder(table, prefs, prefKey);
+
         for (int iCol=0; iCol<table.getColumnCount(); iCol++) {
             table.getColumnModel().getColumn(iCol).addPropertyChangeListener(new PropertyChangeListener() {
 
@@ -77,6 +83,31 @@ public class TableUtils {
             });               
         }
 
+        table.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
+            @Override
+            public void columnMoved(TableColumnModelEvent event) {
+                if (event.getFromIndex() != event.getToIndex()) {
+                    saveColumnOrder(table, prefs, prefKey);
+                }
+            }
+
+            @Override
+            public void columnAdded(TableColumnModelEvent event) {
+            }
+
+            @Override
+            public void columnRemoved(TableColumnModelEvent event) {
+            }
+
+            @Override
+            public void columnMarginChanged(ChangeEvent event) {
+            }
+
+            @Override
+            public void columnSelectionChanged(ListSelectionEvent event) {
+            }
+        });
+
         table.addComponentListener(new ComponentAdapter() {
 
             @Override
@@ -85,6 +116,32 @@ public class TableUtils {
             }
 
         });
+    }
+
+    private static void saveColumnOrder(JTable table, Preferences prefs, String prefKey) {
+        for (int viewIndex = 0; viewIndex < table.getColumnCount(); viewIndex++) {
+            int modelIndex = table.getColumnModel().getColumn(viewIndex).getModelIndex();
+            prefs.putInt(prefKey + ".order." + viewIndex, modelIndex);
+        }
+    }
+
+    private static void restoreColumnOrder(JTable table, Preferences prefs, String prefKey) {
+        int columnCount = table.getColumnCount();
+        boolean[] foundModelIndices = new boolean[columnCount];
+        int[] modelIndices = new int[columnCount];
+        for (int viewIndex = 0; viewIndex < columnCount; viewIndex++) {
+            int modelIndex = prefs.getInt(prefKey + ".order." + viewIndex, -1);
+            if (modelIndex < 0 || modelIndex >= columnCount || foundModelIndices[modelIndex]) {
+                return;
+            }
+            foundModelIndices[modelIndex] = true;
+            modelIndices[viewIndex] = modelIndex;
+        }
+
+        for (int targetViewIndex = 0; targetViewIndex < columnCount; targetViewIndex++) {
+            int currentViewIndex = table.convertColumnIndexToView(modelIndices[targetViewIndex]);
+            table.moveColumn(currentViewIndex, targetViewIndex);
+        }
     }
     
     private static void restoreColumnWidths(JTable table, Preferences prefs, String prefKey) {

@@ -64,6 +64,7 @@ import org.openpnp.gui.components.IssuePanel;
 import org.openpnp.gui.support.ActionGroup;
 import org.openpnp.gui.support.Icons;
 import org.openpnp.gui.support.MultisortTableHeaderCellRenderer;
+import org.openpnp.gui.support.TableUtils;
 import org.openpnp.machine.reference.ReferenceMachine;
 import org.openpnp.model.Configuration;
 import org.openpnp.model.Solutions;
@@ -240,6 +241,8 @@ public class IssuesAndSolutionsPanel extends JPanel {
                 table.getColumnModel().getColumn(2).setPreferredWidth(300);
                 table.getColumnModel().getColumn(3).setPreferredWidth(300);
                 table.getColumnModel().getColumn(4).setPreferredWidth(50);
+                TableUtils.installColumnWidthSavers(table, prefs,
+                    "IssuesAndSolutionsPanel.table.columnWidth");
                 JScrollPane scrollPane = new JScrollPane(table);
                 splitPane.setLeftComponent(scrollPane);
                 solutions.addTableModelListener(new TableModelListener() {
