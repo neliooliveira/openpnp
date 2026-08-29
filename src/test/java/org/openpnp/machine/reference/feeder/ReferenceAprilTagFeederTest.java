@@ -22,6 +22,7 @@ package org.openpnp.machine.reference.feeder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -35,6 +36,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openpnp.machine.reference.feeder.AprilTagDetector.Detection;
+import org.openpnp.machine.reference.feeder.wizards.ReferenceAprilTagFeederConfigurationWizard;
 import org.openpnp.model.Configuration;
 import org.openpnp.model.Length;
 import org.openpnp.model.LengthUnit;
@@ -110,6 +112,25 @@ public class ReferenceAprilTagFeederTest {
         assertFalse(feeder.isEnabled());
         feeder.setPresent(true);
         assertTrue(feeder.isEnabled());
+    }
+
+    @Test
+    public void feederWidthIsDecodedFromTagIdSuffix() {
+        feeder.setTagId(12008);
+        assertEquals(new Length(8, LengthUnit.Millimeters), feeder.getFeederWidth());
+
+        feeder.setTagId(12032);
+        assertEquals(new Length(32, LengthUnit.Millimeters), feeder.getFeederWidth());
+
+        feeder.setTagId(12010);
+        assertNull(feeder.getFeederWidth());
+    }
+
+    @Test
+    public void configurationWizardSupportsInlineTapeSettingsAndFeederWidth() {
+        ReferenceAprilTagFeederConfigurationWizard wizard =
+                new ReferenceAprilTagFeederConfigurationWizard(feeder);
+        assertNotNull(wizard);
     }
 
     @Test

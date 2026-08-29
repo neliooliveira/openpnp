@@ -195,6 +195,10 @@ public abstract class AbstractReferenceFeederConfigurationWizard
     protected void partSelectionChanged(Part part) {
     }
 
+    protected void addToPartSelectionRow(JPanel component) {
+        panelPart.add(component, "6, 2, fill, default");
+    }
+
     @Override
     public void createBindings() {
         LengthConverter lengthConverter = new LengthConverter();

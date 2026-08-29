@@ -53,6 +53,8 @@ import org.simpleframework.xml.Element;
  * tag-to-pick offset are persistent; presence and tag location are refreshed by each scan.
  */
 public class ReferenceAprilTagFeeder extends ReferenceFeeder {
+    private static final int[] SUPPORTED_FEEDER_WIDTHS_MM = {8, 12, 16, 24, 32};
+
     @Attribute(required = false)
     private Integer tagId;
 
@@ -139,9 +141,24 @@ public class ReferenceAprilTagFeeder extends ReferenceFeeder {
         }
         boolean oldEnabled = isEnabled();
         Integer oldValue = this.tagId;
+        Length oldFeederWidth = getFeederWidth();
         this.tagId = tagId;
         firePropertyChange("tagId", oldValue, tagId);
+        firePropertyChange("feederWidth", oldFeederWidth, getFeederWidth());
         firePropertyChange("enabled", oldEnabled, isEnabled());
+    }
+
+    public Length getFeederWidth() {
+        if (tagId == null) {
+            return null;
+        }
+        int encodedWidth = tagId % 1000;
+        for (int supportedWidth : SUPPORTED_FEEDER_WIDTHS_MM) {
+            if (encodedWidth == supportedWidth) {
+                return new Length(encodedWidth, LengthUnit.Millimeters);
+            }
+        }
+        return null;
     }
 
     public Location getTagToPickOffset() {

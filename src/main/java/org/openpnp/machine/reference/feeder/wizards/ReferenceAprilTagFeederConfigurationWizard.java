@@ -19,6 +19,7 @@
 
 package org.openpnp.machine.reference.feeder.wizards;
 
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
@@ -60,6 +61,7 @@ public class ReferenceAprilTagFeederConfigurationWizard
 
     private JTextField tagId;
     private JLabel presence;
+        private JTextField feederWidth;
     private JTextField partPitch;
     private JTextField rotationInTape;
 
@@ -93,10 +95,34 @@ public class ReferenceAprilTagFeederConfigurationWizard
     }
 
     private void createUi() {
+        createPartTapeSettings();
         createFeederPanel();
         createTagLocationPanel();
         createOffsetPanel();
         createScanPanel();
+    }
+
+    private void createPartTapeSettings() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+
+        JLabel partPitchLabel = new JLabel(Translations.getString(
+                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.PartPitchLabel.text")); //$NON-NLS-1$
+        String partPitchToolTip = Translations.getString(
+                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.PartPitchLabel.toolTipText"); //$NON-NLS-1$
+        partPitchLabel.setToolTipText(partPitchToolTip);
+        panel.add(partPitchLabel);
+        partPitch = new JTextField(6);
+        partPitch.setEditable(false);
+        partPitch.setToolTipText(partPitchToolTip);
+        panel.add(partPitch);
+
+        panel.add(new JLabel(Translations.getString(
+                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.RotationInTapeLabel.text"))); //$NON-NLS-1$
+        rotationInTape = new JTextField(6);
+        rotationInTape.setEditable(false);
+        panel.add(rotationInTape);
+
+        addToPartSelectionRow(panel);
     }
 
     private void createFeederPanel() {
@@ -111,8 +137,6 @@ public class ReferenceAprilTagFeederConfigurationWizard
                 FormSpecs.RELATED_GAP_COLSPEC,
                 ColumnSpec.decode("default:grow"),},
             new RowSpec[] {
-                FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,
                 FormSpecs.RELATED_GAP_ROWSPEC,
                 FormSpecs.DEFAULT_ROWSPEC,
                 FormSpecs.RELATED_GAP_ROWSPEC,
@@ -137,40 +161,34 @@ public class ReferenceAprilTagFeederConfigurationWizard
         presence = new JLabel();
         panel.add(presence, "4, 4, left, default");
 
-        JLabel partPitchLabel = new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.PartPitchLabel.text")); //$NON-NLS-1$
-        String partPitchToolTip = Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.PartPitchLabel.toolTipText"); //$NON-NLS-1$
-        partPitchLabel.setToolTipText(partPitchToolTip);
-        panel.add(partPitchLabel, "2, 6, right, default");
-        partPitch = new JTextField(10);
-        partPitch.setEditable(false);
-        partPitch.setToolTipText(partPitchToolTip);
-        panel.add(partPitch, "4, 6, left, default");
-
-        panel.add(new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.RotationInTapeLabel.text")), //$NON-NLS-1$
-                "2, 8, right, default");
-        rotationInTape = new JTextField(10);
-        rotationInTape.setEditable(false);
-        panel.add(rotationInTape, "4, 8, left, default");
+        JLabel feederWidthLabel = new JLabel(Translations.getString(
+                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.FeederWidthLabel.text")); //$NON-NLS-1$
+        String feederWidthToolTip = Translations.getString(
+                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.FeederWidthLabel.toolTipText"); //$NON-NLS-1$
+        feederWidthLabel.setToolTipText(feederWidthToolTip);
+        panel.add(feederWidthLabel,
+                "2, 6, right, default");
+        feederWidth = new JTextField(10);
+        feederWidth.setEditable(false);
+        feederWidth.setToolTipText(feederWidthToolTip);
+        panel.add(feederWidth, "4, 6, left, default");
     }
 
-        @Override
-        protected void partSelectionChanged(Part part) {
-                if (partPitch == null || rotationInTape == null) {
-                        return;
-                }
-                Length selectedPitch = new Length(4, LengthUnit.Millimeters);
-                double selectedRotation = 0;
-                if (part != null && part.getPackage() != null) {
-                        selectedPitch = part.getPackage().getTapePartPitch();
-                        selectedRotation = part.getPackage().getRotationInTape();
-                }
-                partPitch.setText(new LengthConverter().convertForward(selectedPitch));
-                rotationInTape.setText(new DoubleConverter(Configuration.get().getLengthDisplayFormat())
-                                .convertForward(selectedRotation));
+    @Override
+    protected void partSelectionChanged(Part part) {
+        if (partPitch == null || rotationInTape == null) {
+            return;
         }
+        Length selectedPitch = new Length(4, LengthUnit.Millimeters);
+        double selectedRotation = 0;
+        if (part != null && part.getPackage() != null) {
+            selectedPitch = part.getPackage().getTapePartPitch();
+            selectedRotation = part.getPackage().getRotationInTape();
+        }
+        partPitch.setText(new LengthConverter().convertForward(selectedPitch));
+        rotationInTape.setText(new DoubleConverter(Configuration.get().getLengthDisplayFormat())
+                .convertForward(selectedRotation));
+    }
 
     private void createTagLocationPanel() {
         JPanel panel = createLocationPanel(Translations.getString(
@@ -337,6 +355,18 @@ public class ReferenceAprilTagFeederConfigurationWizard
 
         bind(UpdateStrategy.READ, feeder, "tagId", tagId, "text", nullableIntegerConverter);
         bind(UpdateStrategy.READ, feeder, "presenceText", presence, "text");
+                bind(UpdateStrategy.READ, feeder, "feederWidth", feederWidth, "text",
+                                new Converter<Length, String>() {
+                                        @Override
+                                        public String convertForward(Length value) {
+                                                return value == null ? "" : lengthConverter.convertForward(value);
+                                        }
+
+                                        @Override
+                                        public Length convertReverse(String value) {
+                                                return lengthConverter.convertReverse(value);
+                                        }
+                                });
         bind(UpdateStrategy.READ, feeder, "tapePartPitch", partPitch, "text", lengthConverter);
         bind(UpdateStrategy.READ, feeder, "rotationInTape", rotationInTape, "text",
                 doubleConverter);
