@@ -42,6 +42,9 @@ import org.openpnp.machine.reference.feeder.AprilTagDetector.TagFamily;
 import org.openpnp.machine.reference.feeder.AprilTagFeederProperties;
 import org.openpnp.machine.reference.feeder.ReferenceAprilTagFeeder;
 import org.openpnp.model.Configuration;
+import org.openpnp.model.Length;
+import org.openpnp.model.LengthUnit;
+import org.openpnp.model.Part;
 import org.openpnp.util.UiUtils;
 
 import com.jgoodies.forms.layout.ColumnSpec;
@@ -117,10 +120,15 @@ public class ReferenceAprilTagFeederConfigurationWizard
                 FormSpecs.RELATED_GAP_ROWSPEC,
                 FormSpecs.DEFAULT_ROWSPEC,}));
 
-        panel.add(new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.TagIdLabel.text")), //$NON-NLS-1$
-                "2, 2, right, default");
+        JLabel tagIdLabel = new JLabel(Translations.getString(
+                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.TagIdLabel.text")); //$NON-NLS-1$
+        String tagIdToolTip = Translations.getString(
+                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.TagIdLabel.toolTipText"); //$NON-NLS-1$
+        tagIdLabel.setToolTipText(tagIdToolTip);
+        panel.add(tagIdLabel, "2, 2, right, default");
         tagId = new JTextField(10);
+        tagId.setEditable(false);
+        tagId.setToolTipText(tagIdToolTip);
         panel.add(tagId, "4, 2, left, default");
 
         panel.add(new JLabel(Translations.getString(
@@ -129,11 +137,15 @@ public class ReferenceAprilTagFeederConfigurationWizard
         presence = new JLabel();
         panel.add(presence, "4, 4, left, default");
 
-        panel.add(new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.PartPitchLabel.text")), //$NON-NLS-1$
-                "2, 6, right, default");
+        JLabel partPitchLabel = new JLabel(Translations.getString(
+                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.PartPitchLabel.text")); //$NON-NLS-1$
+        String partPitchToolTip = Translations.getString(
+                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.PartPitchLabel.toolTipText"); //$NON-NLS-1$
+        partPitchLabel.setToolTipText(partPitchToolTip);
+        panel.add(partPitchLabel, "2, 6, right, default");
         partPitch = new JTextField(10);
         partPitch.setEditable(false);
+        partPitch.setToolTipText(partPitchToolTip);
         panel.add(partPitch, "4, 6, left, default");
 
         panel.add(new JLabel(Translations.getString(
@@ -143,6 +155,22 @@ public class ReferenceAprilTagFeederConfigurationWizard
         rotationInTape.setEditable(false);
         panel.add(rotationInTape, "4, 8, left, default");
     }
+
+        @Override
+        protected void partSelectionChanged(Part part) {
+                if (partPitch == null || rotationInTape == null) {
+                        return;
+                }
+                Length selectedPitch = new Length(4, LengthUnit.Millimeters);
+                double selectedRotation = 0;
+                if (part != null && part.getPackage() != null) {
+                        selectedPitch = part.getPackage().getTapePartPitch();
+                        selectedRotation = part.getPackage().getRotationInTape();
+                }
+                partPitch.setText(new LengthConverter().convertForward(selectedPitch));
+                rotationInTape.setText(new DoubleConverter(Configuration.get().getLengthDisplayFormat())
+                                .convertForward(selectedRotation));
+        }
 
     private void createTagLocationPanel() {
         JPanel panel = createLocationPanel(Translations.getString(
@@ -307,7 +335,7 @@ public class ReferenceAprilTagFeederConfigurationWizard
         DoubleConverter doubleConverter =
                 new DoubleConverter(Configuration.get().getLengthDisplayFormat());
 
-        addWrappedBinding(feeder, "tagId", tagId, "text", nullableIntegerConverter);
+        bind(UpdateStrategy.READ, feeder, "tagId", tagId, "text", nullableIntegerConverter);
         bind(UpdateStrategy.READ, feeder, "presenceText", presence, "text");
         bind(UpdateStrategy.READ, feeder, "tapePartPitch", partPitch, "text", lengthConverter);
         bind(UpdateStrategy.READ, feeder, "rotationInTape", rotationInTape, "text",

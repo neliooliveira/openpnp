@@ -28,17 +28,21 @@ import org.openpnp.gui.components.ComponentDecorators;
 import org.openpnp.gui.support.AbstractConfigurationWizard;
 import org.openpnp.gui.support.DoubleConverter;
 import org.openpnp.gui.support.LengthConverter;
-import org.openpnp.model.Configuration;
 
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.RowSpec;
 import com.jgoodies.forms.layout.FormSpecs;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 @SuppressWarnings("serial")
 public class PackageSettingsWizard extends AbstractConfigurationWizard {
+    private static final String[] PART_PITCH_VALUES = {"2 mm", "4 mm", "8 mm", "12 mm",
+            "16 mm", "20 mm", "24 mm", "28 mm", "32 mm"};
+    private static final String[] ROTATION_VALUES = {"0", "90", "180", "270"};
+
     private final org.openpnp.model.Package pkg;
     private JPanel vacuumBlowOffPanel;
     private JLabel lblNewLabel;
@@ -47,9 +51,9 @@ public class PackageSettingsWizard extends AbstractConfigurationWizard {
     private JTextField blowOffLevel;
     private JPanel tapePanel;
     private JLabel partPitchLabel;
-    private JTextField partPitch;
+        private JComboBox<String> partPitch;
     private JLabel rotationInTapeLabel;
-    private JTextField rotationInTape;
+        private JComboBox<String> rotationInTape;
 
     public PackageSettingsWizard(org.openpnp.model.Package pkg) {
         this.pkg = pkg;
@@ -75,18 +79,20 @@ public class PackageSettingsWizard extends AbstractConfigurationWizard {
 
         partPitchLabel = new JLabel(
                 Translations.getString("PackageSettingsWizard.PartPitchLabel.text")); //$NON-NLS-1$
+        String partPitchToolTip =
+                Translations.getString("PackageSettingsWizard.PartPitchLabel.toolTipText"); //$NON-NLS-1$
+        partPitchLabel.setToolTipText(partPitchToolTip);
         tapePanel.add(partPitchLabel, "2, 2, right, default");
 
-        partPitch = new JTextField();
-        partPitch.setColumns(10);
+        partPitch = new JComboBox<>(PART_PITCH_VALUES);
+        partPitch.setToolTipText(partPitchToolTip);
         tapePanel.add(partPitch, "4, 2, left, default");
 
         rotationInTapeLabel = new JLabel(
                 Translations.getString("PackageSettingsWizard.RotationInTapeLabel.text")); //$NON-NLS-1$
         tapePanel.add(rotationInTapeLabel, "2, 4, right, default");
 
-        rotationInTape = new JTextField();
-        rotationInTape.setColumns(10);
+        rotationInTape = new JComboBox<>(ROTATION_VALUES);
         tapePanel.add(rotationInTape, "4, 4, left, default");
 
         vacuumBlowOffPanel = new JPanel();
@@ -95,7 +101,6 @@ public class PackageSettingsWizard extends AbstractConfigurationWizard {
         vacuumBlowOffPanel.setBorder(new TitledBorder(null, Translations.getString(
                 "PackageSettingsWizard.Border.title"), //$NON-NLS-1$
                 TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        add(vacuumBlowOffPanel);
         vacuumBlowOffPanel.setLayout(new FormLayout(new ColumnSpec[] {
                 FormSpecs.RELATED_GAP_COLSPEC,
                 FormSpecs.DEFAULT_COLSPEC,
@@ -125,20 +130,15 @@ public class PackageSettingsWizard extends AbstractConfigurationWizard {
     @Override
     public void createBindings() {
         DoubleConverter levelConverter = new DoubleConverter("%.1f");
-        DoubleConverter angleConverter =
-                new DoubleConverter(Configuration.get().getLengthDisplayFormat());
-        LengthConverter lengthConverter = new LengthConverter();
-        
-        bind(UpdateStrategy.READ_WRITE, pkg, "tapePartPitch", partPitch, "text", lengthConverter);
-        bind(UpdateStrategy.READ_WRITE, pkg, "rotationInTape", rotationInTape, "text",
-                angleConverter);
+        bind(UpdateStrategy.READ_WRITE, pkg, "tapePartPitch", partPitch, "selectedItem",
+                new LengthConverter("%.0f mm"));
+        bind(UpdateStrategy.READ_WRITE, pkg, "rotationInTape", rotationInTape, "selectedItem",
+                new DoubleConverter("%.0f"));
         bind(UpdateStrategy.READ_WRITE, pkg, "pickVacuumLevel", vacuumLevel, "text",
                 levelConverter);
         bind(UpdateStrategy.READ_WRITE, pkg, "placeBlowOffLevel", blowOffLevel, "text",
                 levelConverter);
         
-        ComponentDecorators.decorateWithAutoSelectAndLengthConversion(partPitch);
-        ComponentDecorators.decorateWithAutoSelect(rotationInTape);
         ComponentDecorators.decorateWithAutoSelect(vacuumLevel);
         ComponentDecorators.decorateWithAutoSelect(blowOffLevel);
     }
