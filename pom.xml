@@ -79,6 +79,25 @@
 			<version>4.5.5-1</version>
 		</dependency>
 		<dependency>
+			<groupId>org.boofcv</groupId>
+			<artifactId>boofcv-recognition</artifactId>
+			<version>0.43.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.deepboof</groupId>
+					<artifactId>main</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.deepboof</groupId>
+					<artifactId>models</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.deepboof</groupId>
+					<artifactId>io</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<version>2.2.3</version>
