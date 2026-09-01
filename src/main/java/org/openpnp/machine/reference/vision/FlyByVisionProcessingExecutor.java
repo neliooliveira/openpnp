@@ -11,11 +11,14 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Dedicated bounded processing pool for Fly-By vision frames.
+ * Dedicated processing pool for Fly-By vision frames.
  *
  * CvPipeline instances are stateful, therefore callers must submit one independent/cloned pipeline
- * per task. The pool parallelizes different frames (for example nozzle 1 and nozzle 2), while each
- * individual pipeline remains ordered stage-by-stage as required by CvPipeline semantics.
+ * per task. The pool parallelizes different frames while each individual pipeline remains ordered
+ * stage-by-stage as required by CvPipeline semantics.
+ *
+ * The default parallelism is detected automatically from Runtime.availableProcessors() and may use
+ * all logical processors when enough independent frame-processing work is queued.
  */
 public final class FlyByVisionProcessingExecutor implements AutoCloseable {
     private static final FlyByVisionProcessingExecutor instance =
@@ -26,10 +29,7 @@ public final class FlyByVisionProcessingExecutor implements AutoCloseable {
     }
 
     private static int defaultParallelism() {
-        int cores = Runtime.getRuntime().availableProcessors();
-        // Two concurrent frames are enough for the current dual-nozzle CHMT design. Leave CPU headroom
-        // for the GUI, motion planner and OpenCV's own native worker threads.
-        return Math.max(1, Math.min(2, cores - 1));
+        return Math.max(1, Runtime.getRuntime().availableProcessors());
     }
 
     private final int parallelism;
@@ -50,13 +50,15 @@ public final class FlyByVisionProcessingExecutor implements AutoCloseable {
         executor = Executors.newFixedThreadPool(parallelism, factory);
     }
 
+    /** Number of logical processors available to Fly-By frame processing. */
     public int getParallelism() {
         return parallelism;
     }
 
     /**
-     * Submit processing for one already-captured frame. Callers must not reuse the same CvPipeline
-     * object concurrently between tasks.
+     * Submit processing for one already-captured frame. Threads are created on demand by the fixed
+     * pool and work is distributed automatically up to the detected processor count. Callers must
+     * not reuse the same CvPipeline object concurrently between tasks.
      */
     public <T> Future<T> submit(Callable<T> processingTask) {
         if (processingTask == null) {
