@@ -3,6 +3,7 @@
  */
 package org.openpnp.machine.reference.driver;
 
+import org.openpnp.model.Motion.MoveToCommand;
 import org.openpnp.spi.FlyByTriggerDriver;
 import org.openpnp.spi.HeadMountable;
 import org.simpleframework.xml.Root;
@@ -16,6 +17,7 @@ import org.simpleframework.xml.Root;
 public class VirtualFlyByDriver extends NullDriver implements FlyByTriggerDriver {
     private volatile FlyByMode flyByMode = FlyByMode.Live;
     private volatile TriggerRequest armedRequest;
+    private volatile long firedRequestId = -1;
     private volatile int cameraPulseMicroseconds = 1000;
     private volatile int ledStrobeMicroseconds = 100;
 
@@ -27,6 +29,7 @@ public class VirtualFlyByDriver extends NullDriver implements FlyByTriggerDriver
         flyByMode = mode;
         if (mode == FlyByMode.Live) {
             armedRequest = null;
+            firedRequestId = -1;
         }
     }
 
@@ -49,6 +52,17 @@ public class VirtualFlyByDriver extends NullDriver implements FlyByTriggerDriver
             throw new IllegalArgumentException("request must not be null");
         }
         armedRequest = request;
+        firedRequestId = -1;
+    }
+
+    @Override
+    public void moveTo(HeadMountable mountable, MoveToCommand move) throws Exception {
+        super.moveTo(mountable, move);
+        TriggerRequest request = armedRequest;
+        if (request != null && flyByMode != FlyByMode.Live) {
+            firedRequestId = request.getRequestId();
+            armedRequest = null;
+        }
     }
 
     @Override
@@ -57,13 +71,15 @@ public class VirtualFlyByDriver extends NullDriver implements FlyByTriggerDriver
         if (request != null && request.getRequestId() == requestId) {
             armedRequest = null;
         }
+        if (firedRequestId == requestId) {
+            firedRequestId = -1;
+        }
         flyByMode = FlyByMode.Live;
     }
 
     @Override
     public boolean hasFlyByTriggerFired(long requestId) throws Exception {
-        TriggerRequest request = armedRequest;
-        return request != null && request.getRequestId() == requestId;
+        return firedRequestId == requestId;
     }
 
     public FlyByMode getFlyByMode() {
