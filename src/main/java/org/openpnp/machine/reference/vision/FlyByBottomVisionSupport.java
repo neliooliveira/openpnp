@@ -6,8 +6,13 @@ package org.openpnp.machine.reference.vision;
 import org.openpnp.machine.reference.camera.BufferedImageCamera;
 import org.openpnp.model.BottomVisionSettings;
 import org.openpnp.model.BottomVisionSettings.AcquisitionMode;
+import org.openpnp.model.LengthUnit;
+import org.openpnp.model.Location;
 import org.openpnp.spi.Camera;
+import org.openpnp.spi.Driver;
 import org.openpnp.spi.FlyByTriggerDriver;
+import org.openpnp.spi.Machine;
+import org.openpnp.spi.Nozzle;
 import org.openpnp.spi.TriggeredCamera;
 
 /**
@@ -42,6 +47,69 @@ public final class FlyByBottomVisionSupport {
     }
 
     /**
+     * Find the Fly-By driver responsible for the nozzle axes. A single Fly-By driver is accepted
+     * for machines without mapped axes as well, which is useful for virtual configurations.
+     */
+    public static FlyByTriggerDriver findDriver(Machine machine, Nozzle nozzle) {
+        if (machine == null || nozzle == null) {
+            return null;
+        }
+        FlyByTriggerDriver onlyCandidate = null;
+        int candidateCount = 0;
+        for (Driver driver : machine.getDrivers()) {
+            if (driver instanceof FlyByTriggerDriver) {
+                FlyByTriggerDriver candidate = (FlyByTriggerDriver) driver;
+                if (!nozzle.getMappedAxes(machine).drivenBy(driver).isEmpty()) {
+                    return candidate;
+                }
+                candidateCount++;
+                if (candidateCount == 1) {
+                    onlyCandidate = candidate;
+                }
+                else {
+                    // Multiple unassociated candidates are ambiguous.
+                    onlyCandidate = null;
+                }
+            }
+        }
+        return onlyCandidate;
+    }
+
+    /** Return the one-based nozzle number used by the controller protocol. */
+    public static int getNozzleNumber(Nozzle nozzle) throws Exception {
+        if (nozzle == null || nozzle.getHead() == null) {
+            throw new Exception("Fly-By bottom vision requires a nozzle attached to a head.");
+        }
+        int nozzleIndex = nozzle.getHead().getNozzles().indexOf(nozzle);
+        if (nozzleIndex < 0 || nozzleIndex >= 255) {
+            throw new Exception("Fly-By nozzle is not registered on its head or exceeds protocol limits.");
+        }
+        return nozzleIndex + 1;
+    }
+
+    /**
+     * Calculate a point that approaches the shot along the current XY travel direction. If the
+     * nozzle is already at the shot XY, use the negative X direction deterministically.
+     */
+    public static Location getApproachLocation(Location currentLocation, Location shotLocation,
+            double approachDistanceMillimeters) {
+        Location current = currentLocation.convertToUnits(LengthUnit.Millimeters);
+        Location shot = shotLocation.convertToUnits(LengthUnit.Millimeters);
+        double dx = shot.getX() - current.getX();
+        double dy = shot.getY() - current.getY();
+        double travel = Math.hypot(dx, dy);
+        if (travel == 0) {
+            dx = 1;
+            dy = 0;
+            travel = 1;
+        }
+        Location approach = shot.derive(
+                shot.getX() - dx / travel * approachDistanceMillimeters,
+                shot.getY() - dy / travel * approachDistanceMillimeters, null, null);
+        return approach.convertToUnits(shotLocation.getUnits());
+    }
+
+    /**
      * Convert one triggered frame into a normal Camera for the existing CvPipeline.
      *
      * BufferedImageCamera copies units-per-pixel from the real camera, so all current bottom-vision
@@ -72,6 +140,7 @@ public final class FlyByBottomVisionSupport {
                 throw new Exception("Fly-By bottom vision requires a TriggeredCamera and "
                         + "FlyByTriggerDriver.");
             }
+            return;
         }
         if (settings.getFlyByApproachDistanceMm() <= 0
                 || !Double.isFinite(settings.getFlyByApproachDistanceMm())) {
