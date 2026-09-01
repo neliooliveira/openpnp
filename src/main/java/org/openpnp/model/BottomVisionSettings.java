@@ -31,8 +31,9 @@ public class BottomVisionSettings extends AbstractVisionSettings {
     @Attribute(required = false)
     protected double flyByApproachDistanceMm = 12.0;
 
+    /** U3V-CAM-IMX296 vendor guidance recommends a trigger pulse of at least 1 ms. */
     @Attribute(required = false)
-    protected int flyByCameraPulseMicroseconds = 50;
+    protected int flyByCameraPulseMicroseconds = 1000;
 
     @Attribute(required = false)
     protected int flyByStrobeMicroseconds = 100;
