@@ -13,8 +13,20 @@ import org.simpleframework.xml.Element;
 
 public class BottomVisionSettings extends AbstractVisionSettings {
 
+    public enum AcquisitionMode {
+        /** Preserve the existing stop-settle-capture bottom vision behavior. */
+        Stationary,
+        /** Require deterministic hardware-triggered image acquisition while the head is moving. */
+        FlyBy,
+        /** Use Fly-By when the configured camera and machine support it, otherwise use Stationary. */
+        Auto
+    }
+
     @Attribute(required = false)
     protected PreRotateUsage preRotateUsage = PreRotateUsage.Default;
+
+    @Attribute(required = false)
+    protected AcquisitionMode acquisitionMode = AcquisitionMode.Stationary;
 
     @Attribute(required = false)
     protected PartSizeCheckMethod checkPartSizeMethod = PartSizeCheckMethod.Disabled;
@@ -68,6 +80,16 @@ public class BottomVisionSettings extends AbstractVisionSettings {
         Object oldValue = this.preRotateUsage;
         this.preRotateUsage = preRotateUsage;
         firePropertyChange("preRotateUsage", oldValue, preRotateUsage);
+    }
+
+    public AcquisitionMode getAcquisitionMode() {
+        return acquisitionMode;
+    }
+
+    public void setAcquisitionMode(AcquisitionMode acquisitionMode) {
+        AcquisitionMode oldValue = this.acquisitionMode;
+        this.acquisitionMode = acquisitionMode == null ? AcquisitionMode.Stationary : acquisitionMode;
+        firePropertyChange("acquisitionMode", oldValue, this.acquisitionMode);
     }
 
     public PartSizeCheckMethod getCheckPartSizeMethod() {
@@ -137,6 +159,7 @@ public class BottomVisionSettings extends AbstractVisionSettings {
         }
         setPipelineParameterAssignments(another.getPipelineParameterAssignments());
         setPreRotateUsage(another.getPreRotateUsage());
+        setAcquisitionMode(another.getAcquisitionMode());
         setCheckPartSizeMethod(another.checkPartSizeMethod);
         setMaxRotation(another.getMaxRotation());
         setCheckSizeTolerancePercent(another.getCheckSizeTolerancePercent());
