@@ -17,8 +17,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * per task. The pool parallelizes different frames while each individual pipeline remains ordered
  * stage-by-stage as required by CvPipeline semantics.
  *
- * The default parallelism is detected automatically from Runtime.availableProcessors() and may use
- * all logical processors when enough independent frame-processing work is queued.
+ * By default one logical processor is reserved for OpenPnP, motion/USB communications and the UI.
+ * A single-core system still gets one processing worker. OpenCV may additionally parallelize native
+ * operations internally, so avoiding full Java-level CPU saturation reduces latency jitter.
  */
 public final class FlyByVisionProcessingExecutor implements AutoCloseable {
     private static final FlyByVisionProcessingExecutor instance =
@@ -29,7 +30,8 @@ public final class FlyByVisionProcessingExecutor implements AutoCloseable {
     }
 
     private static int defaultParallelism() {
-        return Math.max(1, Runtime.getRuntime().availableProcessors());
+        int processors = Runtime.getRuntime().availableProcessors();
+        return Math.max(1, processors - 1);
     }
 
     private final int parallelism;
@@ -57,7 +59,7 @@ public final class FlyByVisionProcessingExecutor implements AutoCloseable {
 
     /**
      * Submit processing for one already-captured frame. Threads are created on demand by the fixed
-     * pool and work is distributed automatically up to the detected processor count. Callers must
+     * pool and work is distributed automatically up to the configured processor count. Callers must
      * not reuse the same CvPipeline object concurrently between tasks.
      */
     public <T> Future<T> submit(Callable<T> processingTask) {
