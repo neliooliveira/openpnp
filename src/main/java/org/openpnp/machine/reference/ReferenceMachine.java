@@ -65,6 +65,7 @@ import org.openpnp.machine.reference.driver.NullMotionPlanner;
 import org.openpnp.machine.reference.driver.ReferenceAdvancedMotionPlanner;
 import org.openpnp.machine.reference.feeder.AdvancedLoosePartFeeder;
 import org.openpnp.machine.reference.feeder.BlindsFeeder;
+import org.openpnp.machine.reference.feeder.ReferenceAprilTagFeeder;
 import org.openpnp.machine.reference.feeder.ReferenceAutoFeeder;
 import org.openpnp.machine.reference.feeder.ReferenceDragFeeder;
 import org.openpnp.machine.reference.feeder.ReferenceHeapFeeder;
@@ -433,6 +434,7 @@ public class ReferenceMachine extends AbstractMachine {
     @Override
     public List<Class<? extends Feeder>> getCompatibleFeederClasses() {
         List<Class<? extends Feeder>> l = new ArrayList<>();
+        l.add(ReferenceAprilTagFeeder.class);
         l.add(ReferenceStripFeeder.class);
         l.add(ReferenceTrayFeeder.class);
         l.add(ReferenceRotatedTrayFeeder.class);

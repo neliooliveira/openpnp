@@ -68,6 +68,7 @@ import org.openpnp.gui.support.CustomBooleanRenderer;
 import org.openpnp.gui.support.Helpers;
 import org.openpnp.gui.support.Icons;
 import org.openpnp.gui.support.MessageBoxes;
+import org.openpnp.gui.support.TableUtils;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.gui.support.WizardContainer;
 import org.openpnp.gui.tablemodel.FeedersTableModel;
@@ -246,6 +247,7 @@ public class FeedersPanel extends JPanel implements WizardContainer {
         splitPane.setLeftComponent(new JScrollPane(table));
         table.setRowSorter(tableSorter);
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        TableUtils.installColumnWidthSavers(table, prefs, "FeedersPanel.table.columnWidth");
 
         configurationPanel = new JTabbedPane(JTabbedPane.TOP);
         splitPane.setRightComponent(configurationPanel);

@@ -1,8 +1,18 @@
 This file lists major or notable changes to OpenPnP in chronological order. This is not
 a complete change list, only those that may directly interest or affect users.
 
-# Version 2.6
+# Version 2.7
 
+## New Features
+
+* Reduce horizontal padding in some table columns, for more compact displays [PR 1950](https://github.com/openpnp/openpnp/pull/1950)
+
+## Bug Fixes
+
+* Fix macOS camera permissions [PR 1955](https://github.com/openpnp/openpnp/pull/1955)
+
+
+# Version 2.5
 ## New Features
 
 * The [Rank](https://github.com/openpnp/openpnp/wiki/Rank) feature, supporting the "how do I make sure X is placed before Y?" requirement. [PR 1842](https://github.com/openpnp/openpnp/pull/1842)
