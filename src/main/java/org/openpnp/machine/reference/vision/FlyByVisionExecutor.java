@@ -90,9 +90,13 @@ public class FlyByVisionExecutor {
             visionManager.enterLiveMode(camera);
         }
         catch (Exception e) {
-            if (failure == null) failure = e;
+            if (failure == null) {
+                failure = e;
+            }
         }
-        if (failure != null) throw failure;
+        if (failure != null) {
+            throw failure;
+        }
     }
 
     public static boolean isSupported(Object camera, Object driver) {
