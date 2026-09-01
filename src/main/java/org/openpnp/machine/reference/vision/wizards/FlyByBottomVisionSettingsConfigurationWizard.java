@@ -2,6 +2,7 @@
 package org.openpnp.machine.reference.vision.wizards;
 
 import java.awt.GridLayout;
+
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -32,13 +33,20 @@ public class FlyByBottomVisionSettingsConfigurationWizard
 
         JPanel panel = new JPanel(new GridLayout(0, 2, 8, 4));
         panel.setBorder(BorderFactory.createTitledBorder("Fly-By acquisition"));
-        panel.add(new JLabel("Acquisition mode")); panel.add(acquisitionMode);
-        panel.add(new JLabel("Approach distance (mm)")); panel.add(approachDistance);
-        panel.add(new JLabel("Camera pulse (us)")); panel.add(cameraPulse);
-        panel.add(new JLabel("LED strobe (us)")); panel.add(strobePulse);
-        panel.add(new JLabel("Capture timeout (ms)")); panel.add(captureTimeout);
-        panel.add(new JLabel("Use LED strobe")); panel.add(ledStrobe);
-        panel.add(new JLabel("Fallback to stationary")); panel.add(fallback);
+        panel.add(new JLabel("Acquisition mode"));
+        panel.add(acquisitionMode);
+        panel.add(new JLabel("Approach distance (mm)"));
+        panel.add(approachDistance);
+        panel.add(new JLabel("Camera pulse (us)"));
+        panel.add(cameraPulse);
+        panel.add(new JLabel("LED strobe (us)"));
+        panel.add(strobePulse);
+        panel.add(new JLabel("Capture timeout (ms)"));
+        panel.add(captureTimeout);
+        panel.add(new JLabel("Use LED strobe"));
+        panel.add(ledStrobe);
+        panel.add(new JLabel("Fallback to stationary"));
+        panel.add(fallback);
         contentPanel.add(panel);
     }
 
