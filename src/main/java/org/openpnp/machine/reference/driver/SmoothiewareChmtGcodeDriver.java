@@ -10,60 +10,91 @@
 package org.openpnp.machine.reference.driver;
 
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.openpnp.model.Location;
 import org.openpnp.spi.FlyByTriggerDriver;
 import org.openpnp.spi.HeadMountable;
 import org.simpleframework.xml.Root;
 
 /**
- * G-code driver extension for the Smoothieware-CHMT firmware fork.
+ * G-code driver extension for the Smoothieware-CHMT fly-by protocol.
  *
- * Fly-by protocol:
- *   M990 S1 I<id> X<x> Y<y> P<pulse-us>  - arm one trigger
- *   M990 S0 I<id>                         - cancel trigger
- *   M990 S2 I<id>                         - query trigger state
- *
- * Query response:
- *   FLYBY I<id> F<0|1>
+ * Protocol shared with Smoothieware-CHMT feature/flyby-vision:
+ *   M950 S0|1|2                         mode LIVE/TRIGGER/AUTO
+ *   M951 I<id> N<nozzle> D<mm> C0|1 L0|1   arm next motion
+ *   M952                                status
+ *   M953 C<camera-us> L<strobe-us>      pulse timing
  */
 @Root
 public class SmoothiewareChmtGcodeDriver extends GcodeDriver implements FlyByTriggerDriver {
-    private static final int FLYBY_MCODE = 990;
+    private static final int M_MODE = 950;
+    private static final int M_ARM = 951;
+    private static final int M_STATUS = 952;
+    private static final int M_TIMING = 953;
+
+    @Override
+    public void setFlyByMode(FlyByMode mode) throws Exception {
+        int value;
+        switch (mode) {
+            case Live:
+                value = 0;
+                break;
+            case Trigger:
+                value = 1;
+                break;
+            case Auto:
+                value = 2;
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported fly-by mode " + mode);
+        }
+        sendCommand(String.format(Locale.US, "M%d S%d", M_MODE, value));
+    }
+
+    @Override
+    public void setFlyByTiming(int cameraPulseMicroseconds, int ledStrobeMicroseconds) throws Exception {
+        if (cameraPulseMicroseconds < 0 || ledStrobeMicroseconds < 0) {
+            throw new IllegalArgumentException("Fly-by timing values must not be negative.");
+        }
+        sendCommand(String.format(Locale.US, "M%d C%d L%d", M_TIMING,
+                cameraPulseMicroseconds, ledStrobeMicroseconds));
+    }
 
     @Override
     public void armFlyByTrigger(HeadMountable mountable, TriggerRequest request) throws Exception {
-        Location location = request.getTriggerLocation().convertToUnits(getUnits());
         String command = String.format(Locale.US,
-                "M%d S1 I%d X%.6f Y%.6f P%d",
-                FLYBY_MCODE,
+                "M%d I%d N%d D%.6f C%d L%d",
+                M_ARM,
                 request.getRequestId(),
-                location.getX(),
-                location.getY(),
-                request.getPulseWidthMicroseconds());
+                request.getNozzleId(),
+                request.getTriggerDistanceMillimeters(),
+                request.isCameraTrigger() ? 1 : 0,
+                request.isLedStrobe() ? 1 : 0);
         sendCommand(command);
     }
 
     @Override
     public void cancelFlyByTrigger(long requestId) throws Exception {
-        sendCommand(String.format(Locale.US, "M%d S0 I%d", FLYBY_MCODE, requestId));
+        // The firmware protocol does not define a dedicated cancel command. Returning to LIVE clears
+        // the armed fly-by state safely; the next fly-by operation will explicitly select its mode.
+        setFlyByMode(FlyByMode.Live);
     }
 
     @Override
     public boolean hasFlyByTriggerFired(long requestId) throws Exception {
-        sendCommand(String.format(Locale.US, "M%d S2 I%d", FLYBY_MCODE, requestId));
-        String response = receiveSingleResponse("^FLYBY I" + requestId + " F[01]$");
-        Matcher matcher = Pattern.compile("^FLYBY I(\\d+) F([01])$").matcher(response);
-        if (!matcher.matches()) {
-            throw new Exception("Invalid fly-by trigger response: " + response);
+        sendCommand(String.format(Locale.US, "M%d", M_STATUS));
+
+        // Keep the host parser tolerant while the firmware status text is still evolving. The only
+        // accepted positive result must contain both the requested id and an explicit fired marker.
+        String response = receiveSingleResponse("^.*(?:FLYBY|flyby).*(?:I|id[=: ]+)" + requestId + ".*$");
+        if (response == null) {
+            return false;
         }
-        long responseId = Long.parseLong(matcher.group(1));
-        if (responseId != requestId) {
-            throw new Exception("Fly-by trigger response id mismatch. Expected " + requestId
-                    + " but received " + responseId + ".");
-        }
-        return "1".equals(matcher.group(2));
+        String normalized = response.toLowerCase(Locale.US);
+        return normalized.contains("fired=1")
+                || normalized.contains("fired:1")
+                || normalized.contains(" fired 1")
+                || normalized.contains(" f1")
+                || normalized.contains("triggered=1")
+                || normalized.contains("triggered:1");
     }
 }
