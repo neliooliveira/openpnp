@@ -72,6 +72,7 @@ import org.openpnp.gui.support.MessageBoxes;
 import org.openpnp.gui.support.MultisortTableHeaderCellRenderer;
 import org.openpnp.gui.support.NamedListCellRenderer;
 import org.openpnp.gui.support.NamedTableCellRenderer;
+import org.openpnp.gui.support.TableUtils;
 import org.openpnp.gui.support.VisionSettingsComboBoxModel;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.gui.support.WizardContainer;
@@ -231,6 +232,7 @@ public class PackagesPanel extends JPanel implements WizardContainer {
 
         table.setRowSorter(tableSorter);
         table.getTableHeader().setDefaultRenderer(new MultisortTableHeaderCellRenderer());
+        TableUtils.installColumnWidthSavers(table, prefs, "PackagesPanel.table.columnWidth");
 
         splitPane.setLeftComponent(new JScrollPane(table));
         splitPane.setRightComponent(tabbedPane);

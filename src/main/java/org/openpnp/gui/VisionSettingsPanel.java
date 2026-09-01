@@ -41,6 +41,7 @@ import org.openpnp.gui.support.Helpers;
 import org.openpnp.gui.support.Icons;
 import org.openpnp.gui.support.MessageBoxes;
 import org.openpnp.gui.support.MultisortTableHeaderCellRenderer;
+import org.openpnp.gui.support.TableUtils;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.gui.support.WizardContainer;
 import org.openpnp.gui.tablemodel.VisionSettingsTableModel;
@@ -96,6 +97,8 @@ public class VisionSettingsPanel extends JPanel implements WizardContainer {
 
         table.getColumnModel().getColumn(0).setPreferredWidth(200);
         table.getColumnModel().getColumn(1).setPreferredWidth(600);
+        TableUtils.installColumnWidthSavers(table, prefs,
+            "VisionSettingsPanel.table.columnWidth");
 
         table.getSelectionModel().addListSelectionListener(e -> {
             if (e.getValueIsAdjusting()) {

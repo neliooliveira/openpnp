@@ -79,6 +79,25 @@
 			<version>4.5.5-1</version>
 		</dependency>
 		<dependency>
+			<groupId>org.boofcv</groupId>
+			<artifactId>boofcv-recognition</artifactId>
+			<version>0.43.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.deepboof</groupId>
+					<artifactId>main</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.deepboof</groupId>
+					<artifactId>models</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.deepboof</groupId>
+					<artifactId>io</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<version>2.2.3</version>
@@ -212,17 +231,22 @@
 		<dependency>
 			<groupId>com.formdev</groupId>
 			<artifactId>flatlaf</artifactId>
-			<version>1.0</version>
+			<version>3.7.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.formdev</groupId>
 			<artifactId>flatlaf-extras</artifactId>
-			<version>1.0</version>
+			<version>3.7.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.formdev</groupId>
+			<artifactId>flatlaf-intellij-themes</artifactId>
+			<version>3.7.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.formdev</groupId>
 			<artifactId>svgSalamander</artifactId>
-			<version>1.1.2.4</version>
+			<version>1.1.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>

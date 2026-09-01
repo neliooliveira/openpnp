@@ -23,6 +23,7 @@ import org.openpnp.model.AbstractModelObject;
 import org.openpnp.model.AbstractVisionSettings;
 import org.openpnp.model.BoardLocation;
 import org.openpnp.model.BottomVisionSettings;
+import org.openpnp.model.BottomVisionSettings.AcquisitionMode;
 import org.openpnp.model.Configuration;
 import org.openpnp.model.Length;
 import org.openpnp.model.LengthUnit;
@@ -35,10 +36,15 @@ import org.openpnp.model.VisionCompositing;
 import org.openpnp.model.VisionCompositing.Composite;
 import org.openpnp.model.VisionCompositing.Shot;
 import org.openpnp.spi.Camera;
+import org.openpnp.spi.FlyByTriggerDriver;
 import org.openpnp.spi.Nozzle;
 import org.openpnp.spi.NozzleTip;
 import org.openpnp.spi.PartAlignment;
 import org.openpnp.spi.PropertySheetHolder;
+import org.openpnp.spi.TriggeredCamera;
+import org.openpnp.spi.MotionPlanner.CompletionType;
+import org.openpnp.machine.reference.vision.FlyByVisionManager.CaptureRequest;
+import org.openpnp.machine.reference.vision.FlyByVisionManager.CaptureResult;
 import org.openpnp.util.MovableUtils;
 import org.openpnp.util.OpenCvUtils;
 import org.openpnp.util.Utils2D;
@@ -464,6 +470,17 @@ public class ReferenceBottomVision extends AbstractPartAlignment {
     public void preparePipeline(CvPipeline pipeline, Map<String, Object> pipelineParameterAssignments, 
             Camera camera, Package pkg, Nozzle nozzle, NozzleTip nozzleTip, Location wantedLocation, 
             Location adjustedNozzleLocation, BottomVisionSettings bottomVisionSettings) throws Exception {
+        FlyByTriggerDriver configuredFlyByDriver = null;
+        if (bottomVisionSettings.getAcquisitionMode() != AcquisitionMode.Stationary) {
+            configuredFlyByDriver = FlyByBottomVisionSupport.findDriver(
+                    Configuration.get().getMachine(), nozzle);
+            FlyByBottomVisionSupport.validate(bottomVisionSettings, camera,
+                    configuredFlyByDriver);
+        }
+        final FlyByTriggerDriver flyByDriver = configuredFlyByDriver;
+        final boolean useFlyBy = FlyByBottomVisionSupport.shouldUseFlyBy(bottomVisionSettings,
+                camera, flyByDriver);
+        final FlyByVisionExecutor flyByExecutor = useFlyBy ? new FlyByVisionExecutor() : null;
         VisionCompositing visionCompositing = pkg.getVisionCompositing();
         VisionCompositing.Composite composite = visionCompositing.new Composite(
                 pkg, bottomVisionSettings, nozzle, nozzleTip, camera, wantedLocation);
@@ -555,6 +572,17 @@ public class ReferenceBottomVision extends AbstractPartAlignment {
             pipeline.new PipelineShot() {
                 @Override
                 public void apply() throws Exception {
+                    if (useFlyBy) {
+                        applyFlyByShot(pipeline, camera, nozzle, shotLocation, bottomVisionSettings,
+                                flyByDriver, flyByExecutor);
+                        return;
+                    }
+                    applyStationaryShot(camera, nozzle, nozzleTip, shotLocation);
+                    super.apply();
+                }
+
+                private void applyStationaryShot(Camera camera, Nozzle nozzle,
+                        NozzleTip nozzleTip, Location shotLocation) throws Exception {
                     if (nozzle.getLocation().getLinearLengthTo(camera.getLocation(nozzle))
                             .compareTo(camera.getRoamingRadius()
                                     .add(nozzleTip.getMaxPickTolerance())) > 0) {
@@ -564,7 +592,49 @@ public class ReferenceBottomVision extends AbstractPartAlignment {
                     else {
                         nozzle.moveTo(shotLocation);
                     }
-                    super.apply();
+                }
+
+                private void applyFlyByShot(CvPipeline pipeline, Camera camera, Nozzle nozzle,
+                        Location shotLocation, BottomVisionSettings settings,
+                        FlyByTriggerDriver driver, FlyByVisionExecutor executor) throws Exception {
+                    CaptureRequest request = null;
+                    try {
+                        Location approachLocation = FlyByBottomVisionSupport.getApproachLocation(
+                                nozzle.getLocation(), shotLocation,
+                                settings.getFlyByApproachDistanceMm());
+                        MovableUtils.moveToLocationAtSafeZ(nozzle, approachLocation);
+                        nozzle.waitForCompletion(CompletionType.WaitForStillstand);
+                        executor.configureTiming(driver,
+                                settings.getFlyByCameraPulseMicroseconds(),
+                                settings.getFlyByStrobeMicroseconds());
+                        request = executor.arm((TriggeredCamera) camera, driver, nozzle,
+                                FlyByBottomVisionSupport.getNozzleNumber(nozzle),
+                                settings.getFlyByApproachDistanceMm(),
+                                settings.isFlyByLedStrobe());
+                        nozzle.moveTo(shotLocation);
+                        nozzle.waitForCompletion(CompletionType.WaitForStillstand);
+                        CaptureResult result = executor.complete((TriggeredCamera) camera, driver,
+                                request, settings.getFlyByCaptureTimeoutMilliseconds());
+                        super.apply();
+                        pipeline.setProperty("camera",
+                                FlyByBottomVisionSupport.createPipelineCamera(camera, result));
+                    }
+                    catch (Exception e) {
+                        if (request != null) {
+                            try {
+                                executor.cancel((TriggeredCamera) camera, driver, request);
+                            }
+                            catch (Exception cleanupException) {
+                                e.addSuppressed(cleanupException);
+                            }
+                        }
+                        if (!settings.isFlyByFallbackToStationary()) {
+                            throw e;
+                        }
+                        Logger.warn(e, "Fly-By bottom vision failed; falling back to stationary capture.");
+                        applyStationaryShot(camera, nozzle, nozzleTip, shotLocation);
+                        super.apply();
+                    }
                 }
 
                 @Override 

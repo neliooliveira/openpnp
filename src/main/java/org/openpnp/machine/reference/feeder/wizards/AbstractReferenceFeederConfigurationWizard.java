@@ -117,6 +117,8 @@ public abstract class AbstractReferenceFeederConfigurationWizard
         JLabel lblPart = new JLabel(Translations.getString("AbstractReferenceFeederConfigurationWizard.GeneralPanel.PartLabel.text")); //$NON-NLS-1$
         panelPart.add(lblPart, "2, 2, right, default");
         comboBoxPart.setRenderer(new IdentifiableListCellRenderer<Part>());
+        comboBoxPart.addActionListener(
+            event -> partSelectionChanged((Part) comboBoxPart.getSelectedItem()));
         panelPart.add(comboBoxPart, "4, 2, left, default");
         
         JLabel lblRetryCount = new JLabel(Translations.getString("AbstractReferenceFeederConfigurationWizard.GeneralPanel.FeedRetryCountLabel.text")); //$NON-NLS-1$
@@ -188,6 +190,13 @@ public abstract class AbstractReferenceFeederConfigurationWizard
                     textFieldLocationZ, textFieldLocationC);
             panelLocation.add(locationButtonsPanel, "10, 4");
         }
+    }
+
+    protected void partSelectionChanged(Part part) {
+    }
+
+    protected void addToPartSelectionRow(JPanel component) {
+        panelPart.add(component, "6, 2, fill, default");
     }
 
     @Override
