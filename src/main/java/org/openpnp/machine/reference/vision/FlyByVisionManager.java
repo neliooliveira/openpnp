@@ -5,27 +5,22 @@ package org.openpnp.machine.reference.vision;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.openpnp.spi.Nozzle;
 import org.openpnp.spi.TriggeredCamera;
 import org.openpnp.spi.TriggeredCamera.TriggeredFrame;
 import org.openpnp.spi.TriggeredCamera.TriggerMode;
 
-/**
- * Associates one deterministic hardware trigger with one nozzle and one returned frame.
- *
- * Only one request may be outstanding per camera. This deliberately removes the ambiguity that a
- * FIFO queue would have when several requests are armed before the camera sequence advances.
- */
+/** Associates one deterministic hardware trigger with one nozzle and one returned frame. */
 public class FlyByVisionManager {
+    private static final long MAX_REQUEST_ID = 65535;
     private static final FlyByVisionManager instance = new FlyByVisionManager();
 
     public static FlyByVisionManager get() {
         return instance;
     }
 
-    private final AtomicLong requestSequence = new AtomicLong();
+    private long requestSequence;
     private final Map<TriggeredCamera, CaptureRequest> pendingByCamera = new HashMap<>();
 
     private FlyByVisionManager() {
@@ -42,9 +37,17 @@ public class FlyByVisionManager {
             this.cameraSequenceBeforeTrigger = cameraSequenceBeforeTrigger;
         }
 
-        public long getRequestId() { return requestId; }
-        public String getNozzleId() { return nozzleId; }
-        public long getCameraSequenceBeforeTrigger() { return cameraSequenceBeforeTrigger; }
+        public long getRequestId() {
+            return requestId;
+        }
+
+        public String getNozzleId() {
+            return nozzleId;
+        }
+
+        public long getCameraSequenceBeforeTrigger() {
+            return cameraSequenceBeforeTrigger;
+        }
     }
 
     public static class CaptureResult {
@@ -56,8 +59,21 @@ public class FlyByVisionManager {
             this.frame = frame;
         }
 
-        public CaptureRequest getRequest() { return request; }
-        public TriggeredFrame getFrame() { return frame; }
+        public CaptureRequest getRequest() {
+            return request;
+        }
+
+        public TriggeredFrame getFrame() {
+            return frame;
+        }
+    }
+
+    private long nextRequestId() {
+        requestSequence++;
+        if (requestSequence > MAX_REQUEST_ID) {
+            requestSequence = 1;
+        }
+        return requestSequence;
     }
 
     public synchronized void enterFlyByMode(TriggeredCamera camera) throws Exception {
@@ -82,7 +98,7 @@ public class FlyByVisionManager {
                     + camera.getName() + ". Complete or cancel it before arming another nozzle.");
         }
         enterFlyByMode(camera);
-        CaptureRequest request = new CaptureRequest(requestSequence.incrementAndGet(), nozzle.getId(),
+        CaptureRequest request = new CaptureRequest(nextRequestId(), nozzle.getId(),
                 camera.getLastTriggerSequence());
         pendingByCamera.put(camera, request);
         return request;
