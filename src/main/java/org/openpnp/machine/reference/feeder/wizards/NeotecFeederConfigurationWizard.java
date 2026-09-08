@@ -40,8 +40,8 @@ import org.openpnp.gui.support.DoubleConverter;
 import org.openpnp.gui.support.LengthConverter;
 import org.openpnp.gui.support.MutableLocationProxy;
 import org.openpnp.machine.reference.feeder.AprilTagDetector.TagFamily;
-import org.openpnp.machine.reference.feeder.AprilTagFeederProperties;
-import org.openpnp.machine.reference.feeder.ReferenceAprilTagFeeder;
+import org.openpnp.machine.reference.feeder.NeotecFeederProperties;
+import org.openpnp.machine.reference.feeder.NeotecFeeder;
 import org.openpnp.model.Configuration;
 import org.openpnp.model.Length;
 import org.openpnp.model.LengthUnit;
@@ -54,10 +54,10 @@ import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 @SuppressWarnings("serial")
-public class ReferenceAprilTagFeederConfigurationWizard
+public class NeotecFeederConfigurationWizard
         extends AbstractReferenceFeederConfigurationWizard {
-    private final ReferenceAprilTagFeeder feeder;
-    private final AprilTagFeederProperties properties;
+    private final NeotecFeeder feeder;
+    private final NeotecFeederProperties properties;
 
     private JTextField tagId;
     private JLabel presence;
@@ -87,10 +87,10 @@ public class ReferenceAprilTagFeederConfigurationWizard
     private JButton scanButton;
     private JLabel scanStatus;
 
-    public ReferenceAprilTagFeederConfigurationWizard(ReferenceAprilTagFeeder feeder) {
+    public NeotecFeederConfigurationWizard(NeotecFeeder feeder) {
         super(feeder, false);
         this.feeder = feeder;
-        properties = new AprilTagFeederProperties(Configuration.get().getMachine());
+        properties = new NeotecFeederProperties(Configuration.get().getMachine());
         createUi();
     }
 
@@ -106,9 +106,9 @@ public class ReferenceAprilTagFeederConfigurationWizard
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
 
         JLabel partPitchLabel = new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.PartPitchLabel.text")); //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.FeederPanel.PartPitchLabel.text")); //$NON-NLS-1$
         String partPitchToolTip = Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.PartPitchLabel.toolTipText"); //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.FeederPanel.PartPitchLabel.toolTipText"); //$NON-NLS-1$
         partPitchLabel.setToolTipText(partPitchToolTip);
         panel.add(partPitchLabel);
         partPitch = new JTextField(6);
@@ -117,7 +117,7 @@ public class ReferenceAprilTagFeederConfigurationWizard
         panel.add(partPitch);
 
         panel.add(new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.RotationInTapeLabel.text"))); //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.FeederPanel.RotationInTapeLabel.text"))); //$NON-NLS-1$
         rotationInTape = new JTextField(6);
         rotationInTape.setEditable(false);
         panel.add(rotationInTape);
@@ -128,7 +128,7 @@ public class ReferenceAprilTagFeederConfigurationWizard
     private void createFeederPanel() {
         JPanel panel = new JPanel();
         panel.setBorder(new TitledBorder(null, Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.Border.title"), //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.FeederPanel.Border.title"), //$NON-NLS-1$
                 TitledBorder.LEADING, TitledBorder.TOP, null));
         contentPanel.add(panel);
         panel.setLayout(new FormLayout(new ColumnSpec[] {
@@ -145,9 +145,9 @@ public class ReferenceAprilTagFeederConfigurationWizard
                 FormSpecs.DEFAULT_ROWSPEC,}));
 
         JLabel tagIdLabel = new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.TagIdLabel.text")); //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.FeederPanel.TagIdLabel.text")); //$NON-NLS-1$
         String tagIdToolTip = Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.TagIdLabel.toolTipText"); //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.FeederPanel.TagIdLabel.toolTipText"); //$NON-NLS-1$
         tagIdLabel.setToolTipText(tagIdToolTip);
         panel.add(tagIdLabel, "2, 2, right, default");
         tagId = new JTextField(10);
@@ -156,15 +156,15 @@ public class ReferenceAprilTagFeederConfigurationWizard
         panel.add(tagId, "4, 2, left, default");
 
         panel.add(new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.PresenceLabel.text")), //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.FeederPanel.PresenceLabel.text")), //$NON-NLS-1$
                 "2, 4, right, default");
         presence = new JLabel();
         panel.add(presence, "4, 4, left, default");
 
         JLabel feederWidthLabel = new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.FeederWidthLabel.text")); //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.FeederPanel.FeederWidthLabel.text")); //$NON-NLS-1$
         String feederWidthToolTip = Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.FeederWidthLabel.toolTipText"); //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.FeederPanel.FeederWidthLabel.toolTipText"); //$NON-NLS-1$
         feederWidthLabel.setToolTipText(feederWidthToolTip);
         panel.add(feederWidthLabel,
                 "2, 6, right, default");
@@ -192,7 +192,7 @@ public class ReferenceAprilTagFeederConfigurationWizard
 
     private void createTagLocationPanel() {
         JPanel panel = createLocationPanel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.TagLocationPanel.Border.title")); //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.TagLocationPanel.Border.title")); //$NON-NLS-1$
         tagX = new JTextField(8);
         tagY = new JTextField(8);
         tagZ = new JTextField(8);
@@ -206,7 +206,7 @@ public class ReferenceAprilTagFeederConfigurationWizard
 
     private void createOffsetPanel() {
         JPanel panel = createLocationPanel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.OffsetPanel.Border.title")); //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.OffsetPanel.Border.title")); //$NON-NLS-1$
         offsetX = new JTextField(8);
         offsetY = new JTextField(8);
         offsetZ = new JTextField(8);
@@ -240,7 +240,7 @@ public class ReferenceAprilTagFeederConfigurationWizard
         panel.add(new JLabel("Y"), "4, 2, center, default");
         panel.add(new JLabel("Z"), "6, 2, center, default");
         panel.add(new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.RotationLabel.text")), //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.RotationLabel.text")), //$NON-NLS-1$
                 "8, 2, center, default");
         return panel;
     }
@@ -256,7 +256,7 @@ public class ReferenceAprilTagFeederConfigurationWizard
     private void createScanPanel() {
         JPanel panel = new JPanel();
         panel.setBorder(new TitledBorder(null, Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.ScanPanel.Border.title"), //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.ScanPanel.Border.title"), //$NON-NLS-1$
                 TitledBorder.LEADING, TitledBorder.TOP, null));
         contentPanel.add(panel);
         panel.setLayout(new FormLayout(new ColumnSpec[] {
@@ -288,7 +288,7 @@ public class ReferenceAprilTagFeederConfigurationWizard
         panel.add(new JLabel("Y"), "6, 2, center, default");
 
         panel.add(new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.ScanPanel.StartLabel.text")), //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.ScanPanel.StartLabel.text")), //$NON-NLS-1$
                 "2, 4, right, default");
         scanStartX = new JTextField(8);
         scanStartY = new JTextField(8);
@@ -298,7 +298,7 @@ public class ReferenceAprilTagFeederConfigurationWizard
                 (JTextField) null), "8, 4");
 
         panel.add(new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.ScanPanel.EndLabel.text")), //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.ScanPanel.EndLabel.text")), //$NON-NLS-1$
                 "2, 6, right, default");
         scanEndX = new JTextField(8);
         scanEndY = new JTextField(8);
@@ -308,7 +308,7 @@ public class ReferenceAprilTagFeederConfigurationWizard
                 (JTextField) null), "8, 6");
 
         panel.add(new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.ScanPanel.StepLabel.text")), //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.ScanPanel.StepLabel.text")), //$NON-NLS-1$
                 "2, 8, right, default");
         scanStepX = new JTextField(8);
         scanStepY = new JTextField(8);
@@ -316,13 +316,13 @@ public class ReferenceAprilTagFeederConfigurationWizard
         panel.add(scanStepY, "6, 8");
 
         panel.add(new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.ScanPanel.FamilyLabel.text")), //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.ScanPanel.FamilyLabel.text")), //$NON-NLS-1$
                 "2, 10, right, default");
         tagFamily = new JComboBox<>(TagFamily.values());
         panel.add(tagFamily, "4, 10, 3, 1, left, default");
 
         panel.add(new JLabel(Translations.getString(
-                "ReferenceAprilTagFeederConfigurationWizard.ScanPanel.ActuatorLabel.text")), //$NON-NLS-1$
+                "NeotecFeederConfigurationWizard.ScanPanel.ActuatorLabel.text")), //$NON-NLS-1$
                 "2, 12, right, default");
         actuatorName = new JTextField(20);
         panel.add(actuatorName, "4, 12, 3, 1, fill, default");
@@ -416,23 +416,23 @@ public class ReferenceAprilTagFeederConfigurationWizard
     }
 
     private final Action scanAction = new AbstractAction(Translations.getString(
-            "ReferenceAprilTagFeederConfigurationWizard.ScanPanel.ScanButton.text")) { //$NON-NLS-1$
+            "NeotecFeederConfigurationWizard.ScanPanel.ScanButton.text")) { //$NON-NLS-1$
         @Override
         public void actionPerformed(ActionEvent event) {
             saveToModel();
             scanButton.setEnabled(false);
             scanStatus.setText(Translations.getString(
-                    "ReferenceAprilTagFeederConfigurationWizard.ScanPanel.ScanningLabel.text")); //$NON-NLS-1$
+                    "NeotecFeederConfigurationWizard.ScanPanel.ScanningLabel.text")); //$NON-NLS-1$
 
-            UiUtils.submitUiMachineTask(ReferenceAprilTagFeeder::scan, count -> {
+            UiUtils.submitUiMachineTask(NeotecFeeder::scan, count -> {
                 scanButton.setEnabled(true);
                 scanStatus.setText(String.format(Translations.getString(
-                        "ReferenceAprilTagFeederConfigurationWizard.ScanPanel.FoundLabel.text"), //$NON-NLS-1$
+                        "NeotecFeederConfigurationWizard.ScanPanel.FoundLabel.text"), //$NON-NLS-1$
                         count));
             }, throwable -> {
                 scanButton.setEnabled(true);
                 scanStatus.setText(Translations.getString(
-                        "ReferenceAprilTagFeederConfigurationWizard.ScanPanel.FailedLabel.text")); //$NON-NLS-1$
+                        "NeotecFeederConfigurationWizard.ScanPanel.FailedLabel.text")); //$NON-NLS-1$
                 UiUtils.showError(throwable);
             });
         }

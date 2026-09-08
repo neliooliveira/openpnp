@@ -36,7 +36,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openpnp.machine.reference.feeder.AprilTagDetector.Detection;
-import org.openpnp.machine.reference.feeder.wizards.ReferenceAprilTagFeederConfigurationWizard;
+import org.openpnp.machine.reference.feeder.wizards.NeotecFeederConfigurationWizard;
 import org.openpnp.model.Configuration;
 import org.openpnp.model.Length;
 import org.openpnp.model.LengthUnit;
@@ -56,8 +56,8 @@ import boofcv.factory.fiducial.ConfigHammingMarker;
 import boofcv.factory.fiducial.HammingDictionary;
 import boofcv.struct.image.GrayU8;
 
-public class ReferenceAprilTagFeederTest {
-    private ReferenceAprilTagFeeder feeder;
+public class NeotecFeederTest {
+    private NeotecFeeder feeder;
     private Machine machine;
 
     @BeforeEach
@@ -67,7 +67,7 @@ public class ReferenceAprilTagFeederTest {
         Configuration.get().load();
 
         machine = Configuration.get().getMachine();
-        feeder = new ReferenceAprilTagFeeder();
+        feeder = new NeotecFeeder();
         machine.addFeeder(feeder);
     }
 
@@ -76,7 +76,7 @@ public class ReferenceAprilTagFeederTest {
         Location start = new Location(LengthUnit.Millimeters, 0, 0, 10, 0);
         Location end = new Location(LengthUnit.Millimeters, 40, 20, 0, 0);
 
-        List<Location> locations = ReferenceAprilTagFeeder.createScanLocations(start, end,
+        List<Location> locations = NeotecFeeder.createScanLocations(start, end,
                 new Length(25, LengthUnit.Millimeters),
                 new Length(25, LengthUnit.Millimeters));
 
@@ -128,8 +128,8 @@ public class ReferenceAprilTagFeederTest {
 
     @Test
     public void configurationWizardSupportsInlineTapeSettingsAndFeederWidth() {
-        ReferenceAprilTagFeederConfigurationWizard wizard =
-                new ReferenceAprilTagFeederConfigurationWizard(feeder);
+        NeotecFeederConfigurationWizard wizard =
+                new NeotecFeederConfigurationWizard(feeder);
         assertNotNull(wizard);
     }
 
@@ -140,7 +140,7 @@ public class ReferenceAprilTagFeederTest {
         feeder.setPresent(true);
 
         Actuator actuator = mock(Actuator.class);
-        when(actuator.getName()).thenReturn(AprilTagFeederProperties.DEFAULT_ACTUATOR_NAME);
+        when(actuator.getName()).thenReturn(NeotecFeederProperties.DEFAULT_ACTUATOR_NAME);
         machine.addActuator(actuator);
 
         feeder.feed(mock(Nozzle.class));
@@ -155,7 +155,7 @@ public class ReferenceAprilTagFeederTest {
         feeder.setTagId(12);
         feeder.setPresent(true);
 
-        ReferenceAprilTagFeeder absentFeeder = new ReferenceAprilTagFeeder();
+        NeotecFeeder absentFeeder = new NeotecFeeder();
         absentFeeder.setTagId(44);
         absentFeeder.setPart(assignedPart);
         absentFeeder.setPresent(true);
@@ -163,7 +163,7 @@ public class ReferenceAprilTagFeederTest {
 
         Location updatedLocation = new Location(LengthUnit.Millimeters, 10, 20, 0, 90);
         Location newLocation = new Location(LengthUnit.Millimeters, 30, 40, 0, 0);
-        int count = ReferenceAprilTagFeeder.updateFeeders(machine, Arrays.asList(
+        int count = NeotecFeeder.updateFeeders(machine, Arrays.asList(
                 new Detection(12, updatedLocation, 0), new Detection(77, newLocation, 0)));
 
         assertEquals(2, count);
@@ -173,7 +173,7 @@ public class ReferenceAprilTagFeederTest {
         assertEquals(assignedPart, absentFeeder.getPart());
         assertTrue(machine.getFeeders().contains(absentFeeder));
 
-        ReferenceAprilTagFeeder newFeeder = ReferenceAprilTagFeeder.findByTagId(machine, 77);
+        NeotecFeeder newFeeder = NeotecFeeder.findByTagId(machine, 77);
         assertNotNull(newFeeder);
         assertTrue(newFeeder.isPresent());
         assertEquals(newLocation, newFeeder.getLocation());

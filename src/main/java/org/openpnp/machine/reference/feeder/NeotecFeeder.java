@@ -31,7 +31,7 @@ import org.openpnp.Translations;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.reference.ReferenceFeeder;
 import org.openpnp.machine.reference.feeder.AprilTagDetector.Detection;
-import org.openpnp.machine.reference.feeder.wizards.ReferenceAprilTagFeederConfigurationWizard;
+import org.openpnp.machine.reference.feeder.wizards.NeotecFeederConfigurationWizard;
 import org.openpnp.model.Configuration;
 import org.openpnp.model.Length;
 import org.openpnp.model.LengthUnit;
@@ -49,10 +49,10 @@ import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 
 /**
- * A smart feeder identified and located by an AprilTag. Feeder identity, part assignment and the
+ * A Neotec smart feeder identified and located by an AprilTag. Feeder identity, part assignment and the
  * tag-to-pick offset are persistent; presence and tag location are refreshed by each scan.
  */
-public class ReferenceAprilTagFeeder extends ReferenceFeeder {
+public class NeotecFeeder extends ReferenceFeeder {
     private static final int[] SUPPORTED_FEEDER_WIDTHS_MM = {8, 12, 16, 24, 32};
 
     @Attribute(required = false)
@@ -75,7 +75,7 @@ public class ReferenceAprilTagFeeder extends ReferenceFeeder {
         verifyReady();
 
         Machine machine = Configuration.get().getMachine();
-        AprilTagFeederProperties properties = new AprilTagFeederProperties(machine);
+        NeotecFeederProperties properties = new NeotecFeederProperties(machine);
         Actuator actuator = null;
         if (nozzle != null && nozzle.getHead() != null) {
             actuator = nozzle.getHead().getActuatorByName(properties.getActuatorName());
@@ -103,14 +103,14 @@ public class ReferenceAprilTagFeeder extends ReferenceFeeder {
 
     private void verifyReady() throws Exception {
         if (tagId == null) {
-            throw new Exception("AprilTag feeder has no tag ID configured.");
+            throw new Exception("Neotec feeder has no tag ID configured.");
         }
         if (!present) {
-            throw new Exception("AprilTag feeder " + tagId
+            throw new Exception("Neotec feeder " + tagId
                     + " is not present. Scan the feeders before starting the job.");
         }
         if (getPart() == null || getPart().getPackage() == null) {
-            throw new Exception("AprilTag feeder " + tagId + " has no part package configured.");
+            throw new Exception("Neotec feeder " + tagId + " has no part package configured.");
         }
     }
 
@@ -177,8 +177,8 @@ public class ReferenceAprilTagFeeder extends ReferenceFeeder {
 
     public String getPresenceText() {
         return Translations.getString(present
-                ? "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.Present.text"
-                : "ReferenceAprilTagFeederConfigurationWizard.FeederPanel.NotPresent.text");
+                ? "NeotecFeederConfigurationWizard.FeederPanel.Present.text"
+                : "NeotecFeederConfigurationWizard.FeederPanel.NotPresent.text");
     }
 
     public void setPresent(boolean present) {
@@ -209,10 +209,10 @@ public class ReferenceAprilTagFeeder extends ReferenceFeeder {
         Machine machine = Configuration.get().getMachine();
         Head head = machine.getDefaultHead();
         if (head == null || head.getDefaultCamera() == null) {
-            throw new Exception("No default head camera is available for the AprilTag feeder scan.");
+            throw new Exception("No default head camera is available for the Neotec feeder scan.");
         }
         Camera camera = head.getDefaultCamera();
-        AprilTagFeederProperties properties = new AprilTagFeederProperties(machine);
+        NeotecFeederProperties properties = new NeotecFeederProperties(machine);
         AprilTagDetector detector = new AprilTagDetector(properties.getTagFamily());
 
         Map<Integer, Detection> closestDetections = new LinkedHashMap<>();
@@ -234,18 +234,18 @@ public class ReferenceAprilTagFeeder extends ReferenceFeeder {
 
     static int updateFeeders(Machine machine, Iterable<Detection> detections) throws Exception {
         for (Feeder feeder : machine.getFeeders()) {
-            if (feeder instanceof ReferenceAprilTagFeeder) {
-                ((ReferenceAprilTagFeeder) feeder).setPresent(false);
+            if (feeder instanceof NeotecFeeder) {
+                ((NeotecFeeder) feeder).setPresent(false);
             }
         }
 
         int count = 0;
         for (Detection detection : detections) {
-            ReferenceAprilTagFeeder feeder = findByTagId(machine, detection.getId());
+            NeotecFeeder feeder = findByTagId(machine, detection.getId());
             if (feeder == null) {
-                feeder = new ReferenceAprilTagFeeder();
+                feeder = new NeotecFeeder();
                 feeder.setTagId(detection.getId());
-                feeder.setName("AprilTag " + detection.getId());
+                feeder.setName("Neotec " + detection.getId());
                 machine.addFeeder(feeder);
             }
             feeder.setLocation(detection.getLocation());
@@ -255,14 +255,14 @@ public class ReferenceAprilTagFeeder extends ReferenceFeeder {
         return count;
     }
 
-    public static ReferenceAprilTagFeeder findByTagId(int tagId) {
+    public static NeotecFeeder findByTagId(int tagId) {
         return findByTagId(Configuration.get().getMachine(), tagId);
     }
 
-    static ReferenceAprilTagFeeder findByTagId(Machine machine, int tagId) {
+    static NeotecFeeder findByTagId(Machine machine, int tagId) {
         for (Feeder feeder : machine.getFeeders()) {
-            if (feeder instanceof ReferenceAprilTagFeeder) {
-                ReferenceAprilTagFeeder aprilTagFeeder = (ReferenceAprilTagFeeder) feeder;
+            if (feeder instanceof NeotecFeeder) {
+                NeotecFeeder aprilTagFeeder = (NeotecFeeder) feeder;
                 if (Integer.valueOf(tagId).equals(aprilTagFeeder.tagId)) {
                     return aprilTagFeeder;
                 }
@@ -277,7 +277,7 @@ public class ReferenceAprilTagFeeder extends ReferenceFeeder {
         double stepXValue = stepX.convertToUnits(start.getUnits()).getValue();
         double stepYValue = stepY.convertToUnits(start.getUnits()).getValue();
         if (stepXValue <= 0 || stepYValue <= 0) {
-            throw new IllegalArgumentException("AprilTag scan steps must be greater than zero.");
+            throw new IllegalArgumentException("Neotec feeder scan steps must be greater than zero.");
         }
 
         int xSegments = segmentCount(Math.abs(convertedEnd.getX() - start.getX()), stepXValue);
@@ -307,7 +307,7 @@ public class ReferenceAprilTagFeeder extends ReferenceFeeder {
 
     @Override
     public Wizard getConfigurationWizard() {
-        return new ReferenceAprilTagFeederConfigurationWizard(this);
+        return new NeotecFeederConfigurationWizard(this);
     }
 
     @Override

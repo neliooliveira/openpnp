@@ -26,20 +26,20 @@ import org.openpnp.model.LengthUnit;
 import org.openpnp.model.Location;
 import org.openpnp.spi.Machine;
 
-/** Machine-wide settings shared by all {@link ReferenceAprilTagFeeder} instances. */
-public class AprilTagFeederProperties extends AbstractModelObject {
-    static final String ACTUATOR_NAME = "ReferenceAprilTagFeeder.ActuatorName";
-    static final String SCAN_END_LOCATION = "ReferenceAprilTagFeeder.ScanEndLocation";
-    static final String SCAN_START_LOCATION = "ReferenceAprilTagFeeder.ScanStartLocation";
-    static final String SCAN_STEP_X = "ReferenceAprilTagFeeder.ScanStepX";
-    static final String SCAN_STEP_Y = "ReferenceAprilTagFeeder.ScanStepY";
-    static final String TAG_FAMILY = "ReferenceAprilTagFeeder.TagFamily";
+/** Machine-wide settings shared by all {@link NeotecFeeder} instances. */
+public class NeotecFeederProperties extends AbstractModelObject {
+    static final String ACTUATOR_NAME = "NeotecFeeder.ActuatorName";
+    static final String SCAN_END_LOCATION = "NeotecFeeder.ScanEndLocation";
+    static final String SCAN_START_LOCATION = "NeotecFeeder.ScanStartLocation";
+    static final String SCAN_STEP_X = "NeotecFeeder.ScanStepX";
+    static final String SCAN_STEP_Y = "NeotecFeeder.ScanStepY";
+    static final String TAG_FAMILY = "NeotecFeeder.TagFamily";
 
-    public static final String DEFAULT_ACTUATOR_NAME = "APRILTAGFEEDER";
+    public static final String DEFAULT_ACTUATOR_NAME = "NEOTECFEEDER";
 
     private final Machine machine;
 
-    public AprilTagFeederProperties(Machine machine) {
+    public NeotecFeederProperties(Machine machine) {
         this.machine = machine;
     }
 
